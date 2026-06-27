@@ -43,8 +43,9 @@ export default function GroupsPage() {
       if (mErr) throw mErr;
       setGroupName('');
       void fetchGroups();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to create group. Please try again.';
+    } catch (error: any) {
+      console.error('Group creation error:', error);
+      const message = error?.message || (typeof error === 'string' ? error : 'Failed to create group. Please try again.');
       setError(message);
     } finally {
       setIsSubmitting(false);
