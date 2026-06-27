@@ -75,6 +75,7 @@ export default function LoginPage() {
                   onChange={e => setEmail(e.target.value)}
                   placeholder="captain@voyagesplit.com"
                   required
+                  suppressHydrationWarning
                   className="block w-full pl-10 pr-3 py-3 border rounded-lg transition-colors"
                   style={{ borderColor: '#c2c7cf', background: 'rgba(249,249,253,0.5)', fontFamily: "'Montserrat', sans-serif", fontSize: '16px', outline: 'none' }}
                   onFocus={e => e.target.style.borderColor = '#ffd700'}
@@ -98,6 +99,7 @@ export default function LoginPage() {
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
+                  suppressHydrationWarning
                   className="block w-full pl-10 pr-10 py-3 border rounded-lg transition-colors"
                   style={{ borderColor: '#c2c7cf', background: 'rgba(249,249,253,0.5)', fontFamily: "'Montserrat', sans-serif", fontSize: '16px', outline: 'none' }}
                   onFocus={e => e.target.style.borderColor = '#ffd700'}
@@ -106,6 +108,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  suppressHydrationWarning
                   className="absolute inset-y-0 right-0 pr-3 flex items-center transition-colors"
                   style={{ color: '#72777f', background: 'transparent', border: 'none', cursor: 'pointer' }}
                 >
@@ -123,6 +126,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
+              suppressHydrationWarning
               className="btn-gradient w-full flex items-center justify-center gap-2 py-4 mt-8 shadow-lg"
               style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '14px', fontWeight: 600, letterSpacing: '0.05em' }}
             >

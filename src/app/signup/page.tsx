@@ -85,7 +85,7 @@ export default function SignupPage() {
               <label className="block mb-1" style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '14px', fontWeight: 600, letterSpacing: '0.05em', color: '#42474e' }}>Full Name</label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 px-2" style={{ color: '#72777f' }}>person</span>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Captain Smith" required className="input-ocean" />
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Captain Smith" required suppressHydrationWarning className="input-ocean" />
               </div>
             </div>
 
@@ -94,7 +94,7 @@ export default function SignupPage() {
               <label className="block mb-1" style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '14px', fontWeight: 600, letterSpacing: '0.05em', color: '#42474e' }}>Email Address</label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 px-2" style={{ color: '#72777f' }}>mail</span>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="captain@voyage.com" required className="input-ocean" />
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="captain@voyage.com" required suppressHydrationWarning className="input-ocean" />
               </div>
             </div>
 
@@ -103,8 +103,8 @@ export default function SignupPage() {
               <label className="block mb-1" style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '14px', fontWeight: 600, letterSpacing: '0.05em', color: '#42474e' }}>Password</label>
               <div className="relative mb-2">
                 <span className="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 px-2" style={{ color: '#72777f' }}>lock</span>
-                <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => handlePasswordChange(e.target.value)} placeholder="••••••••" required className="input-ocean pr-10" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-0 top-1/2 -translate-y-1/2 p-2" style={{ color: '#72777f', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => handlePasswordChange(e.target.value)} placeholder="••••••••" required suppressHydrationWarning className="input-ocean pr-10" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} suppressHydrationWarning className="absolute right-0 top-1/2 -translate-y-1/2 p-2" style={{ color: '#72777f', background: 'none', border: 'none', cursor: 'pointer' }}>
                   <span className="material-symbols-outlined">{showPassword ? 'visibility_off' : 'visibility'}</span>
                 </button>
               </div>
@@ -122,7 +122,7 @@ export default function SignupPage() {
               <label className="block mb-1" style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '14px', fontWeight: 600, letterSpacing: '0.05em', color: '#42474e' }}>Confirm Password</label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 px-2" style={{ color: '#72777f' }}>lock_clock</span>
-                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" required className="input-ocean" />
+                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" required suppressHydrationWarning className="input-ocean" />
               </div>
             </div>
 
@@ -130,6 +130,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
+              suppressHydrationWarning
               className="btn-gradient w-full flex items-center justify-center gap-2 py-3 mt-8"
               style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '14px', fontWeight: 600, letterSpacing: '0.05em' }}
             >
