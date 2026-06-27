@@ -110,3 +110,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- Backfill existing users from auth.users to public.users to prevent foreign key constraints from failing
+INSERT INTO public.users (id, email, name)
+SELECT id, email, raw_user_meta_data->>'name' FROM auth.users
+ON CONFLICT (id) DO NOTHING;
