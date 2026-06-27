@@ -54,6 +54,27 @@ CREATE TABLE public.group_expenses (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Helper functions to avoid infinite recursion in RLS
+CREATE OR REPLACE FUNCTION public.is_group_member(check_group_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql SECURITY DEFINER
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.group_members
+    WHERE group_id = check_group_id AND user_id = auth.uid()
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_group_creator(check_group_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql SECURITY DEFINER
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.shared_groups
+    WHERE id = check_group_id AND created_by = auth.uid()
+  );
+$$;
+
 -- Row Level Security (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view and update their own profile" ON public.users FOR ALL USING (auth.uid() = id);
@@ -62,18 +83,18 @@ ALTER TABLE public.personal_expenses ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage their personal expenses" ON public.personal_expenses FOR ALL USING (auth.uid() = user_id);
 
 ALTER TABLE public.shared_groups ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can view groups they are in or created" ON public.shared_groups FOR SELECT USING (auth.uid() = created_by OR id IN (SELECT group_id FROM public.group_members WHERE user_id = auth.uid()));
+CREATE POLICY "Users can view groups they are in or created" ON public.shared_groups FOR SELECT USING (auth.uid() = created_by OR public.is_group_member(id));
 CREATE POLICY "Users can insert groups they create" ON public.shared_groups FOR INSERT WITH CHECK (auth.uid() = created_by);
 CREATE POLICY "Users can delete groups they created" ON public.shared_groups FOR DELETE USING (auth.uid() = created_by);
 
 ALTER TABLE public.group_members ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can view members of their groups" ON public.group_members FOR SELECT USING (group_id IN (SELECT id FROM public.shared_groups WHERE created_by = auth.uid()) OR group_id IN (SELECT group_id FROM public.group_members WHERE user_id = auth.uid()));
+CREATE POLICY "Users can view members of their groups" ON public.group_members FOR SELECT USING (public.is_group_creator(group_id) OR public.is_group_member(group_id));
 CREATE POLICY "Users can join groups" ON public.group_members FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can leave groups" ON public.group_members FOR DELETE USING (auth.uid() = user_id);
 
 ALTER TABLE public.group_expenses ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users can view expenses in their groups" ON public.group_expenses FOR SELECT USING (group_id IN (SELECT id FROM public.shared_groups WHERE created_by = auth.uid()) OR group_id IN (SELECT group_id FROM public.group_members WHERE user_id = auth.uid()));
-CREATE POLICY "Users can add expenses to their groups" ON public.group_expenses FOR INSERT WITH CHECK (auth.uid() = paid_by AND (group_id IN (SELECT id FROM public.shared_groups WHERE created_by = auth.uid()) OR group_id IN (SELECT group_id FROM public.group_members WHERE user_id = auth.uid())));
+CREATE POLICY "Users can view expenses in their groups" ON public.group_expenses FOR SELECT USING (public.is_group_creator(group_id) OR public.is_group_member(group_id));
+CREATE POLICY "Users can add expenses to their groups" ON public.group_expenses FOR INSERT WITH CHECK (auth.uid() = paid_by AND (public.is_group_creator(group_id) OR public.is_group_member(group_id)));
 
 -- Trigger for new user
 CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS TRIGGER AS $$
