@@ -57,22 +57,28 @@ CREATE TABLE public.group_expenses (
 -- Helper functions to avoid infinite recursion in RLS
 CREATE OR REPLACE FUNCTION public.is_group_member(check_group_id UUID)
 RETURNS BOOLEAN
-LANGUAGE sql SECURITY DEFINER
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public
 AS $$
-  SELECT EXISTS (
+BEGIN
+  RETURN EXISTS (
     SELECT 1 FROM public.group_members
     WHERE group_id = check_group_id AND user_id = auth.uid()
   );
+END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.is_group_creator(check_group_id UUID)
 RETURNS BOOLEAN
-LANGUAGE sql SECURITY DEFINER
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public
 AS $$
-  SELECT EXISTS (
+BEGIN
+  RETURN EXISTS (
     SELECT 1 FROM public.shared_groups
     WHERE id = check_group_id AND created_by = auth.uid()
   );
+END;
 $$;
 
 -- Row Level Security (RLS)
