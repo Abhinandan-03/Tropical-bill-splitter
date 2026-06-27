@@ -12,7 +12,9 @@ export default function GroupsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [groupName, setGroupName] = useState('');
+  const [joinGroupId, setJoinGroupId] = useState('');
   const [error, setError] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
 
   const fetchGroups = async () => {
     const { data } = await supabase.from('shared_groups').select('*, group_members(count)').order('created_at', { ascending: false });
@@ -55,6 +57,30 @@ export default function GroupsPage() {
   const handleDelete = async (id: string) => {
     await supabase.from('shared_groups').delete().eq('id', id);
     setGroups(prev => prev.filter(g => g.id !== id));
+  };
+
+  const handleJoin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId) return;
+    setError('');
+    const id = joinGroupId.trim();
+    if (!id || id.length < 10) return setError('Please enter a valid Voyage ID.');
+    setIsJoining(true);
+    try {
+      const { error: mErr } = await supabase.from('group_members').insert([{ group_id: id, user_id: userId }]);
+      if (mErr) {
+        if (mErr.code === '23505') throw new Error('You are already part of this voyage.');
+        if (mErr.code === '23503') throw new Error('Voyage ID not found. Are you sure it is correct?');
+        throw mErr;
+      }
+      setJoinGroupId('');
+      void fetchGroups();
+    } catch (error: any) {
+      console.error('Group join error:', error);
+      setError(error.message || 'Failed to join group. Please check the ID and try again.');
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   const createdGroups = groups.filter(g => g.created_by === userId);
@@ -106,6 +132,36 @@ export default function GroupsPage() {
             </button>
           </div>
         </form>
+
+        <div className="mt-8 pt-8 border-t" style={{ borderColor: 'rgba(194,199,207,0.3)' }}>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(115,34,0,0.1)', color: '#732200' }}>
+              <span className="material-symbols-outlined">group_add</span>
+            </div>
+            <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '24px', fontWeight: 600, color: '#002a48' }}>Join an Existing Voyage</h2>
+          </div>
+          <form onSubmit={handleJoin} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-end">
+            <div className="space-y-2">
+              <label style={labelStyle}>Voyage ID</label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#72777f' }}>key</span>
+                <input type="text" value={joinGroupId} onChange={e => setJoinGroupId(e.target.value)} placeholder="Paste Voyage ID here..." required
+                       className="w-full pl-10 pr-4 py-3 rounded-t-lg transition-colors"
+                       style={{ background: 'rgba(255,255,255,0.5)', border: 'none', borderBottom: '2px solid #c2c7cf', outline: 'none', fontFamily: "'Montserrat', sans-serif", fontSize: '16px', color: '#1a1c1f' }}
+                       onFocus={e => e.target.style.borderBottomColor = '#006879'}
+                       onBlur={e => e.target.style.borderBottomColor = '#c2c7cf'} />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button type="submit" disabled={isJoining}
+                      className="flex items-center gap-2 px-8 py-3 shadow-lg rounded-lg transition-opacity"
+                      style={{ background: '#732200', color: '#ffffff', fontFamily: "'Montserrat', sans-serif", fontSize: '14px', fontWeight: 600, letterSpacing: '0.05em', opacity: isJoining ? 0.7 : 1 }}>
+                {isJoining ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="material-symbols-outlined">login</span>}
+                Join Crew
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
 
       {/* Stats */}
@@ -140,7 +196,7 @@ export default function GroupsPage() {
               const icons = ['directions_boat', 'sailing', 'waves', 'anchor', 'explore'];
               const bgColors = ['rgba(207,229,255,0.1)', 'rgba(255,219,207,0.1)', 'rgba(170,237,255,0.1)'];
               return (
-                <div key={group.id} className="glass-card nautical-border p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <a key={group.id} href={`/dashboard/groups/${group.id}`} className="block glass-card nautical-border p-6 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 cursor-pointer">
                   {/* Watermark icon */}
                   <div className="absolute -right-4 -top-4 pointer-events-none transition-transform group-hover:scale-110 duration-500"
                        style={{ opacity: 0.08, color: '#006879' }}>
@@ -183,7 +239,7 @@ export default function GroupsPage() {
                       {isOwner ? 'Captain' : 'Crew'}
                     </span>
                   </div>
-                </div>
+                </a>
               );
             })}
           </div>
